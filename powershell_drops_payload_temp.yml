@@ -1,0 +1,55 @@
+title: Suspicious PowerShell Writing Next-Stage Payload to Temp
+id: 97c6bf0c-a19c-6953-susp-pwsh-payload
+status: experimental
+description: Detects PowerShell decoding Base64 payload and writing a staged BAT file into Temp directory.
+author: K3rnelcallz
+date: 2026-02-02
+references:
+  - https://any.run/report/d3b4b97c2bf97d70e5655ff4c4ca1d8cef9ded51685cfd764247cfda98ee68df/1476a615-6b54-4d5b-b737-6002a19584e3
+sha256: D3B4B97C2BF97D70E5655FF4C4CA1D8CEF9DED51685CFD764247CFDA98EE68DF
+
+logsource:
+  category: process_creation
+  product: windows
+
+detection:
+  selection_powershell:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+    CommandLine|contains:
+      - "-NoProfile"
+      - "-Command"
+
+  selection_decode_write:
+    CommandLine|contains:
+      - "[System.Convert]::FromBase64String"
+      - "[System.IO.File]::WriteAllBytes"
+      - "Get-Content -Raw"
+      - "-Encoding ASCII"
+      - "\AppData\Local\Temp\payload.b64"
+      - "\AppData\Local\Temp\payload.bat"
+
+  condition: selection_powershell and selection_decode_write
+
+fields:
+  - CommandLine
+  - ParentImage
+  - Image
+  - CurrentDirectory
+  - Sha256
+
+tags:
+  - attack.execution
+  - attack.t1059.001      # PowerShell
+  - attack.t1027          # Obfuscated/Encoded Payloads
+  - attack.t1105          # Staged Download
+  - malware.dropper
+  - loader.base64.decode
+
+falsepositives:
+  - DevOps automation scripts writing config files through Base64 (rare)
+  - Admin scripts exporting backup files to temp path
+  - Security research or malware analysis environments
+
+level: high
