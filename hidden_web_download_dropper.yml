@@ -1,0 +1,55 @@
+title: Suspicious PowerShell Hidden Web Download Dropping BAT in Temp
+id: 6c8a26a8-7f2b-4fa4-9c20-psh-hidden-temp-bat
+status: experimental
+description: Detect PowerShell executed with hidden window and downloading remote file using WebClient, writing a BAT file in Temp directory.
+author: k3rnelcallz
+date: 2025/12/30
+references:
+  - https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+sha: D3B4B97C2BF97D70E5655FF4C4CA1D8CEF9DED51685CFD764247CFDA98EE68DF
+logsource:
+  product: windows
+  category: process_creation
+
+detection:
+  selection_image:
+    Image|endswith: '\powershell.exe'
+
+  selection_hidden_flag:
+    CommandLine|contains:
+      - '-WindowStyle Hidden'
+      - 'WindowStyle Hidden'
+      - 'hidden'
+
+  selection_web_download:
+    CommandLine|contains:
+      - 'DownloadFile'
+      - 'System.Net.WebClient'
+      - '[Net.ServicePointManager]'
+      - 'Tls12'
+
+  selection_bat_temp:
+    CommandLine|contains:
+      - '\AppData\Local\Temp'
+      - '.bat'
+
+  condition: selection_image and selection_hidden_flag and selection_web_download and selection_bat_temp
+
+fields:
+  - UtcTime
+  - Image
+  - CommandLine
+  - ParentImage
+  - ParentCommandLine
+  - IntegrityLevel
+  - User
+
+falsepositives:
+  - Admin scripted deployments
+  - Legitimate automation scripts
+level: high
+tags:
+  - attack.execution
+  - attack.t1059.001
+  - attack.command_and_control
+  - attack.t1105
