@@ -1,0 +1,37 @@
+title: Powershell executed from wscript with obfuscated base64
+id:7b2a4e51-1234-4a21-9d82-b7e123456789
+status: experimental
+description: Detection for suspicious powershell execution of vbscript part of AgentTesla
+reference: https://www.virustotal.com/gui/file/d9dcc750e92090e36769db3f0ed8997a0f68c81ebdaef0f7ad5716735fbabf0c
+author: k3rnelcallz
+date: 10-01-2026
+
+detection: 
+	selection_parent_image:
+		ParentImage|endswith:
+			- '\wscript.exe'
+			- '\cscript.exe'
+	
+	selection_powershell:
+		Image|endswith:
+			- '\powershell.exe'
+			- '\pwsh.exe'
+	
+	selection_obfuscation:
+		Commandline|contains|all
+			- 'system.Text.encoding'
+			- 'Unicode.GetString'
+			- 'Frombase64string'
+			- '.replace'
+			- 'iex'
+
+condition: 
+	selection_obfuscation and selection_parent_image and selection_powershell
+
+tags:
+	- attack.execution
+	- attack.t1059.001 # PowerShell
+	- attack.t1059.005 # VBScript
+	- attack.t1140     # De-obfuscate/Decode Files or Information
+level: medium 
+ruletype: sigma
