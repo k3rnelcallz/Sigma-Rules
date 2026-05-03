@@ -1,0 +1,18 @@
+title: Linux Curl Pipe Bash Execution
+id: linux-curl-bash-exec
+status: stable
+logsource:
+  product: linux
+  category: process_creation
+
+detection:
+  selection:
+    CommandLine|contains:
+      - "curl http"
+      - "| bash"
+  condition: all of selection
+
+level: high
+tags:
+  - attack.t1059
+  - attack.t1105

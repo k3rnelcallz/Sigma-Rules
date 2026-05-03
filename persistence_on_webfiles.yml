@@ -1,0 +1,18 @@
+title: Linux Immutable Flag Persistence
+id: linux-chattr-webshell
+status: stable
+
+logsource:
+  product: linux
+  category: process_creation
+
+detection:
+  selection:
+    CommandLine|contains:
+      - "chattr +i"
+      - "/var/www/html/"
+  condition: selection
+
+level: high
+tags:
+  - attack.t1222
