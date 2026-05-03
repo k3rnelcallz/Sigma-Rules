@@ -1,0 +1,18 @@
+title: FreePBX Database User Manipulation
+id: linux-freepbx-db-hijack
+status: stable
+
+logsource:
+  product: linux
+  category: process_creation
+
+detection:
+  selection:
+    CommandLine|contains:
+      - "DELETE FROM ampusers"
+      - "freepbxusers"
+  condition: selection
+
+level: critical
+tags:
+  - attack.t1505
